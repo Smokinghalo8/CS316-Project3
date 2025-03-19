@@ -4,13 +4,54 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TCPServer {
     static ServerErrorHandling errorHandling = new ServerErrorHandling();
 
+    static class upload implements Runnable{
+        public upload(String filename,SocketChannel channel) throws IOException{
+            FileOutputStream fs = new FileOutputStream("ServerFiles/"+filename,true);
+            FileChannel fc = fs.getChannel();
+            ByteBuffer fileContent = ByteBuffer.allocate(1024);
+            while(channel.read(fileContent)>=0){
+                fileContent.flip();
+                fc.write(fileContent);
+                fileContent.clear();
+            }
+
+            ByteBuffer replyBuffer = ByteBuffer.wrap((filename + " has been successfully uploaded").getBytes());
+            channel.write(replyBuffer);
+            channel.close();
+        }
+        public void run(){}
+    }
+
+    static class download implements Runnable{
+        public download(String filename,SocketChannel channel) throws IOException {
+            if (errorHandling.checkIfFileExists(filename)){
+                FileInputStream fs = new FileInputStream("ServerFiles/"+filename);
+                FileChannel fc = fs.getChannel();
+                ByteBuffer fileContent = ByteBuffer.allocate(1024);
+                int byteRead;
+                do {
+                    byteRead = fc.read(fileContent);
+                    fileContent.flip();
+                    channel.write(fileContent);
+                    fileContent.clear();
+                }while(byteRead>=0);
+                fs.close();
+                channel.close();
+            }
+        }
+        public void run(){}
+    }
+
     public static void main(String[] args) throws Exception {
         ServerSocketChannel listenChannel = ServerSocketChannel.open();
         listenChannel.bind(new InetSocketAddress(3002));
+        ExecutorService es = Executors.newFixedThreadPool(4);
         while(true) {
             SocketChannel serveChannel = listenChannel.accept();
             String ServerDirectory = "ServerFiles/";
@@ -27,10 +68,12 @@ public class TCPServer {
                     renameFile(getUserInput(serveChannel),serveChannel);
                     break;
                 case "DOWNLOAD":
-                    downloadFile(getUserInput(serveChannel),serveChannel);
+                    es.submit(new download(getUserInput(serveChannel),serveChannel));
+                    es.shutdown();
                     break;
                 case "UPLOAD":
-                    uploadFile(getUserInput(serveChannel),serveChannel);
+                    es.submit(new upload(getUserInput(serveChannel),serveChannel));
+                    es.shutdown();
                     break;
                 default:
                     break;
@@ -104,21 +147,6 @@ public class TCPServer {
             fs.close();
             channel.close();
         }
-    }
-
-    static void uploadFile(String filename,SocketChannel channel) throws IOException {
-        FileOutputStream fs = new FileOutputStream("ServerFiles/"+filename,true);
-        FileChannel fc = fs.getChannel();
-        ByteBuffer fileContent = ByteBuffer.allocate(1024);
-        while(channel.read(fileContent)>=0){
-            fileContent.flip();
-            fc.write(fileContent);
-            fileContent.clear();
-        }
-
-        ByteBuffer replyBuffer = ByteBuffer.wrap((filename + " has been successfully uploaded").getBytes());
-        channel.write(replyBuffer);
-        channel.close();
     }
 
     static String getUserInput(SocketChannel channel) throws IOException {

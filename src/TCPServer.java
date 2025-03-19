@@ -131,24 +131,7 @@ public class TCPServer {
         channel.write(replyBuffer);
         channel.close();
     }
-
-    static void downloadFile(String filename,SocketChannel channel) throws IOException {
-        if (errorHandling.checkIfFileExists(filename)){
-            FileInputStream fs = new FileInputStream("ServerFiles/"+filename);
-            FileChannel fc = fs.getChannel();
-            ByteBuffer fileContent = ByteBuffer.allocate(1024);
-            int byteRead;
-            do {
-                byteRead = fc.read(fileContent);
-                fileContent.flip();
-                channel.write(fileContent);
-                fileContent.clear();
-            }while(byteRead>=0);
-            fs.close();
-            channel.close();
-        }
-    }
-
+    
     static String getUserInput(SocketChannel channel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         int bytesRead = channel.read(buffer);

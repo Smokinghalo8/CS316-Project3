@@ -48,37 +48,51 @@ public class TCPServer {
         public void run(){}
     }
 
-    public static void main(String[] args) throws Exception {
-        ServerSocketChannel listenChannel = ServerSocketChannel.open();
-        listenChannel.bind(new InetSocketAddress(3002));
-        ExecutorService es = Executors.newFixedThreadPool(4);
-        while(true) {
-            SocketChannel serveChannel = listenChannel.accept();
-            String ServerDirectory = "ServerFiles/";
+    static class accept implements Runnable{
+        public accept(ServerSocketChannel listenChannel) throws IOException {
+            listenChannel.bind(new InetSocketAddress(3002));
+            ExecutorService es = Executors.newFixedThreadPool(4);
+            while(true) {
+                SocketChannel serveChannel = listenChannel.accept();
+                String ServerDirectory = "ServerFiles/";
 
-            String clientMessage= getUserInput(serveChannel);
-            switch(clientMessage){
-                case "LIST":
-                    getListOfFiles(ServerDirectory,serveChannel);
-                    break;
-                case "DELETE":
-                    deleteFile(getUserInput(serveChannel),ServerDirectory,serveChannel);
-                    break;
-                case "RENAME":
-                    renameFile(getUserInput(serveChannel),serveChannel);
-                    break;
-                case "DOWNLOAD":
-                    es.submit(new download(getUserInput(serveChannel),serveChannel));
-                    es.shutdown();
-                    break;
-                case "UPLOAD":
-                    es.submit(new upload(getUserInput(serveChannel),serveChannel));
-                    es.shutdown();
-                    break;
-                default:
-                    break;
+                String clientMessage= getUserInput(serveChannel);
+                System.out.println(clientMessage);
+                switch(clientMessage){
+                    case "LIST":
+                        getListOfFiles(ServerDirectory,serveChannel);
+                        break;
+                    case "DELETE":
+                        deleteFile(getUserInput(serveChannel),ServerDirectory,serveChannel);
+                        break;
+                    case "RENAME":
+                        renameFile(getUserInput(serveChannel),serveChannel);
+                        break;
+                    case "DOWNLOAD":
+                        es.submit(new download(getUserInput(serveChannel),serveChannel));
+                        es.shutdown();
+                        break;
+                    case "UPLOAD":
+                        es.submit(new upload(getUserInput(serveChannel),serveChannel));
+                        es.shutdown();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
+
+        public void run() {}
+    }
+
+    public static void main(String[] args) throws Exception {
+        ServerSocketChannel listenChannel = ServerSocketChannel.open();
+        ExecutorService es = Executors.newFixedThreadPool(4);
+
+        while (true){
+            es.submit(new accept(listenChannel));
+        }
+
     }
 
     static void getListOfFiles(String fileDirectory, SocketChannel channel) throws IOException {

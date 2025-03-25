@@ -42,9 +42,11 @@ public class TCPClient {
                     break;
                 case "DOWNLOAD":
                     downloadFile(channel);
+                    Thread.sleep(5000);
                     break;
                 case "UPLOAD":
                     uploadFile(channel);
+                    Thread.sleep(5000);
                     break;
             }
             channel.close();

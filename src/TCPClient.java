@@ -27,6 +27,7 @@ public class TCPClient {
 
             SocketChannel channel = SocketChannel.open();
             channel.connect(new InetSocketAddress(args[0],serverPort));
+            Thread.sleep(5000);
             ByteBuffer buffer = ByteBuffer.wrap(commandName.getBytes());
             channel.write(buffer);
 
@@ -42,11 +43,9 @@ public class TCPClient {
                     break;
                 case "DOWNLOAD":
                     downloadFile(channel);
-                    Thread.sleep(5000);
                     break;
                 case "UPLOAD":
                     uploadFile(channel);
-                    Thread.sleep(5000);
                     break;
             }
             channel.close();

@@ -92,11 +92,9 @@ public class TCPServer {
                             break;
                         case "DOWNLOAD":
                             es.submit(new download(getUserInput(serveChannel),serveChannel));
-                            es.shutdown();
                             break;
                         case "UPLOAD":
                             es.submit(new upload(getUserInput(serveChannel),serveChannel));
-                            es.shutdown();
                             break;
                         default:
                             break;

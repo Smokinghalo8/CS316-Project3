@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
+import java.rmi.ConnectException;
 import java.util.Scanner;
 
 
@@ -17,39 +18,44 @@ public class TCPClient {
         String commandName;
 
         errorHandling.CheckForCorrectAmountOfArguments(args);
-        while(true){
-            do {
-                System.out.println("Please Enter A Command:");
-                System.out.println("List. List of File \nDelete. Delete a File \nRename. Rename a File \nDownload. Download a File \nUpload. Upload a File");
-                commandName = keyboard.nextLine();
-                commandName = commandName.toUpperCase();
-            } while (!errorHandling.CheckForProperCommand(commandName));
+        try {
+            while(true){
+                do {
+                    System.out.println("Please Enter A Command:");
+                    System.out.println("List. List of File \nDelete. Delete a File \nRename. Rename a File \nDownload. Download a File \nUpload. Upload a File");
+                    commandName = keyboard.nextLine();
+                    commandName = commandName.toUpperCase();
+                } while (!errorHandling.CheckForProperCommand(commandName));
 
-            SocketChannel channel = SocketChannel.open();
-            channel.connect(new InetSocketAddress(args[0],serverPort));
-            Thread.sleep(5000);
-            ByteBuffer buffer = ByteBuffer.wrap(commandName.getBytes());
-            channel.write(buffer);
+                SocketChannel channel = SocketChannel.open();
+                channel.connect(new InetSocketAddress(args[0],serverPort));
+                Thread.sleep(10000);
+                ByteBuffer buffer = ByteBuffer.wrap(commandName.getBytes());
+                channel.write(buffer);
 
-            switch (commandName){
-                case "LIST":
-                    serverOutput(channel);
-                    break;
-                case "DELETE":
-                    deleteFile(channel);
-                    break;
-                case "RENAME":
-                    renameFile(channel);
-                    break;
-                case "DOWNLOAD":
-                    downloadFile(channel);
-                    break;
-                case "UPLOAD":
-                    uploadFile(channel);
-                    break;
+                switch (commandName){
+                    case "LIST":
+                        serverOutput(channel);
+                        break;
+                    case "DELETE":
+                        deleteFile(channel);
+                        break;
+                    case "RENAME":
+                        renameFile(channel);
+                        break;
+                    case "DOWNLOAD":
+                        downloadFile(channel);
+                        break;
+                    case "UPLOAD":
+                        uploadFile(channel);
+                        break;
+                }
+                channel.close();
             }
-            channel.close();
+        }catch (ConnectException e){
+            System.out.println("Connection has been terminated");
         }
+
    }
 
    static void deleteFile(SocketChannel channel) throws IOException {

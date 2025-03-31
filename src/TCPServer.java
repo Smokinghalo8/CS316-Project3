@@ -74,10 +74,11 @@ public class TCPServer {
         public void run() {
             try {
                 listenChannel.bind(new InetSocketAddress(3002));
-                ExecutorService es = Executors.newFixedThreadPool(4);
+
                 while(true) {
                     SocketChannel serveChannel = listenChannel.accept();
                     String ServerDirectory = "ServerFiles/";
+                    ExecutorService es = Executors.newFixedThreadPool(4);
 
                     String clientMessage= getUserInput(serveChannel);
                     switch(clientMessage){
@@ -99,6 +100,7 @@ public class TCPServer {
                         default:
                             break;
                     }
+                    es.shutdown();
                 }
             }catch (Exception e) {
                 throw new RuntimeException(e);
@@ -120,9 +122,9 @@ public class TCPServer {
             test = keyboard.nextLine();
             if (test.equals("Shutdown")){
                 tester = false;
-
             }
         }
+        System.out.println("here");
         es.shutdown();
         listenChannel.close();
     }

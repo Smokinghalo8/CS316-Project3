@@ -116,15 +116,15 @@ public class TCPServer {
         String test;
         boolean tester=true;
 
+        es.submit(new accept(listenChannel));
+
         while (tester){
-            es.submit(new accept(listenChannel));
             System.out.println("Enter Shutdown to shutdown server");
             test = keyboard.nextLine();
             if (test.equals("Shutdown")){
                 tester = false;
             }
         }
-        System.out.println("here");
         es.shutdown();
         listenChannel.close();
     }
